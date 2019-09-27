@@ -11,6 +11,28 @@ use Noop\FlushLog\Tests\Entity\Product;
 
 class FlushLogSubscriberTest extends BaseTest
 {
+    public function testPersistsUserCorrectly() {}
+
+    public function testTimestamps() {}
+
+    public function testCanDeserializeCorrectly() {}
+
+    public function testQueryWithDefaultDriver() {}
+
+    public function testRelationAdditionAndDeletion() {}
+
+    public function testAffectedOnInsertsUpdatesAndDeletes() {}
+
+    public function testUpdates() {}
+
+    public function testRemovals() {}
+
+    public function testSkippedFields() {}
+
+    public function testSkippedEntities() {}
+
+    public function testChangeSets() {}
+
     public function testMultipleLog()
     {
         $product1 = (new Product())

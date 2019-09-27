@@ -29,6 +29,17 @@ _PHP_: 7.1+
 * collection change tracking
 * "Affected entities" concept. `ProductTranslation` change affects `Product` change, event if the `Product` entity wasn't changed at all.
 
+# FAQ
+
+**JSON search is very slow. Can you add indexes?**
+
+No and this is a bad approach. If your application relies on entity changes and queries the flushlog frequently, a viable approach would be to use external search system that can work with JSON - like Elasticsearch, Sphinxsearch, or Lucene.
+
+**Can you support versioning of objects?**
+
+Yes, I could (creating a version for each entity, linking to particular flushlog), but it will take some time. You can submit a pull request or, alternatively, sponsor the development.
+ 
+
 # And Symfony?
 
 There is a bundle in development.
