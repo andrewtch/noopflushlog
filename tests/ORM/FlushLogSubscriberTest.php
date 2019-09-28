@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Type;
 use Noop\FlushLog\Tests\BaseTest;
 use Noop\FlushLog\Tests\Entity\LogEntry;
 use Noop\FlushLog\Tests\Entity\Product;
+use Noop\FlushLog\Tests\Entity\SkippedProduct;
 
 class FlushLogSubscriberTest extends BaseTest
 {
@@ -23,15 +24,38 @@ class FlushLogSubscriberTest extends BaseTest
 
     public function testAffectedOnInsertsUpdatesAndDeletes() {}
 
-    public function testUpdates() {}
-
     public function testRemovals() {}
+
+    public function testChangeSets() {}
 
     public function testSkippedFields() {}
 
-    public function testSkippedEntities() {}
+    public function testUpdates() {}
 
-    public function testChangeSets() {}
+    public function testSkippedEntities()
+    {
+        $product1 = (new Product())
+            ->setName('name1');
+
+        $product2 = (new SkippedProduct())
+            ->setName('name2');
+
+        $this->entityManager->persist($product1);
+        $this->entityManager->persist($product2);
+
+        $this->entityManager->flush();
+
+        $this->assertCount(1, $this->entityManager->getRepository(Product::class)->findAll());
+        $this->assertCount(1, $this->entityManager->getRepository(SkippedProduct::class)->findAll());
+
+        $entries = $this->entityManager->getRepository(LogEntry::class)->findAll();
+
+        $this->assertCount(1, $entries);
+
+        $entry = $entries[0];
+
+        $this->assertEquals([Product::class], array_keys($entry->getLogData()['i']));
+    }
 
     public function testMultipleLog()
     {

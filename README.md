@@ -47,3 +47,44 @@ There is a bundle in development.
 # Ok, how do I install it?
 
 I will complete this part sometime.
+
+# Internal structure of JSON field
+
+Example JSON:
+
+```json
+{
+    "e": {
+        "App\\Entity\\EntityName": [6, 18, "123;31"] 
+    },
+    "i": {
+        "App\\Entity\\EntityName": [6, 18, "123;31"] 
+    },
+    "cs": {
+        "App\\Entity\\EntityName": {
+            "6": {
+                "field": [null, "asdf"],
+                "field1": [null, 6]
+            }
+        }
+    }
+}
+```
+
+* **"e"** contains class -> id map of all affected entities (either directly or indirectly, by configuration or by collection change)
+* **"i"** contains class -> id maps of all inserted entities
+* **"cs"** contains class -> id -> field map of all changesets. You can set tracked fields per-entity in the configuration. By default, if entity is tracked, all fields are tracked
+
+# Configuration
+
+Example configuration: 
+
+```php
+[
+    // lists tracked entities. All other entities are ignored
+    'entities' => [
+        'App\Entity\EntityName': [
+        ]
+    ]
+]
+```

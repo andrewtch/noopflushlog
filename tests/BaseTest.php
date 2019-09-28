@@ -9,16 +9,22 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use Noop\FlushLog\Doctrine\ORM\FlushLogSubscriber;
+use Noop\FlushLog\Tests\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
 abstract class BaseTest extends TestCase
 {
-
     /**
      * @var EntityManagerInterface
      */
     protected $entityManager;
     protected $connectionName = 'mysql';
+
+    protected $configuration = [
+        'entities' => [
+            Product::class => []
+        ]
+    ];
 
     protected function tearDown(): void
     {
@@ -60,6 +66,8 @@ abstract class BaseTest extends TestCase
 
         // configure and add subscriber
         $subscriber = new FlushLogSubscriber();
+
+        $subscriber->setConfiguration($this->configuration);
 
         $eventManager->addEventSubscriber($subscriber);
 

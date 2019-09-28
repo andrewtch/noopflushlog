@@ -13,7 +13,14 @@ use Noop\FlushLog\Doctrine\Entity\BaseLogEntry;
 
 class FlushLogSubscriber implements EventSubscriber
 {
-    protected $data = [];
+    protected $log = [];
+
+    protected $configuration;
+
+    public function setConfiguration($configuration)
+    {
+        $this->configuration = $configuration;
+    }
 
     public function getSubscribedEvents()
     {
@@ -29,14 +36,18 @@ class FlushLogSubscriber implements EventSubscriber
         $uow = $em->getUnitOfWork();
 
         foreach ($uow->getScheduledEntityInsertions() as $hash => $entity) {
+            if (!$this->isSupportedEntity($entity)) {
+                continue;
+            }
+
             // queue for resolution
-            $this->data['_i'][get_class($entity)][] = $hash;
+            $this->log['_i'][get_class($entity)][] = $hash;
 
             // queue cs
-            $this->data['_cs'][get_class($entity)][$hash] = $uow->getEntityChangeSet($entity);
+            $this->log['_cs'][get_class($entity)][$hash] = $uow->getEntityChangeSet($entity);
 
             // hash
-            $this->data['_hashmap'][$hash] = $entity;
+            $this->log['_hashmap'][$hash] = $entity;
         }
     }
 
@@ -48,31 +59,31 @@ class FlushLogSubscriber implements EventSubscriber
         // post-process data
 
         // resolve hashmap
-        foreach ($this->data['_hashmap'] as $hash => $entity) {
-            $this->data['_hashmap'][$hash] = $this->getMergedIdentifier($uow, $entity);
+        foreach ($this->log['_hashmap'] as $hash => $entity) {
+            $this->log['_hashmap'][$hash] = $this->getMergedIdentifier($uow, $entity);
         }
 
         // resolve inserts
-        foreach ($this->data['_i'] as $class => $hashes) {
+        foreach ($this->log['_i'] as $class => $hashes) {
             foreach ($hashes as $hash) {
-                $this->data['i'][$class][] = $this->data['_hashmap'][$hash];
+                $this->log['i'][$class][] = $this->log['_hashmap'][$hash];
 
                 // add to affected entities
-                $this->data['e'][$class][] = $this->data['_hashmap'][$hash];
+                $this->log['e'][$class][] = $this->log['_hashmap'][$hash];
             }
         }
-        unset($this->data['_i']);
+        unset($this->log['_i']);
 
         // resolve changesets
-        foreach ($this->data['_cs'] as $class => $changesets) {
+        foreach ($this->log['_cs'] as $class => $changesets) {
             foreach ($changesets as $hash => $changeset) {
-                $this->data['cs'][$class][$this->data['_hashmap'][$hash]] = $changeset;
+                $this->log['cs'][$class][$this->log['_hashmap'][$hash]] = $changeset;
             }
         }
-        unset($this->data['_cs']);
+        unset($this->log['_cs']);
 
         // we don't need hashmap anymore
-        unset($this->data['_hashmap']);
+        unset($this->log['_hashmap']);
 
         // post-processing end
 
@@ -80,10 +91,15 @@ class FlushLogSubscriber implements EventSubscriber
         $tableConfig = $this->resolveTableConfig($em);
 
         $em->getConnection()->insert($tableConfig['name'], [
-            $tableConfig['log_data_name'] => json_encode($this->data),
+            $tableConfig['log_data_name'] => json_encode($this->log),
         ]);
 
-        $this->data = [];
+        $this->log = [];
+    }
+
+    protected function isSupportedEntity(object $entity)
+    {
+        return array_key_exists(get_class($entity), $this->configuration['entities']);
     }
 
     protected function getMergedIdentifier(UnitOfWork $uow, object $entity)
