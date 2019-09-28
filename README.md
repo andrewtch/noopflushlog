@@ -4,7 +4,7 @@ This is add-on to [Doctrine2](https://github.com/doctrine/orm) the implements `E
 
 # Why?
 
-Because relations. Most of the libraries log single entity changes, but a change in `ProductTranslaton` is actually a change in `Product` from application perspective. Collection updates also matter (who attached that image to this product?).
+Because relations. Most of the libraries log single entity changes, but a change in `ProductTranslation` is actually a change in `Product` from application perspective. Collection updates also matter (who attached that image to this product?).
 
 Therefore, this library logs _flushes_, consisting of many changes (insertions, removals, deletions, AND collection changes). Also, it tries to be a low-level library, that does not create new entities on each flush, manipulating DBAL directly.
 
@@ -46,7 +46,38 @@ There is a bundle in development.
 
 # Ok, how do I install it?
 
-I will complete this part sometime.
+1. Initialize the `FlushLogSubscriber`:
+```php
+$subscriber = new Noop\FlushlLog\Doctrine\ORM\FlushLogSubscriber();
+```
+
+2. Set the configuration (see example below):
+```php
+$subscriber->setConfiguration(...);
+```
+
+3. Add the subscriber to Doctrine's `EventManager`:
+```php
+$eventManager->addEventSubscriber($subscriber);
+```
+
+4. Extend `Noop\FlushLog\Doctrine\Entity\BaseLogEntry` to update your schema accordingly (it's a `MappedSuperclass`, so your entity should be beautifully empty):
+```php
+<?php
+
+namespace App\Tests\Entity;
+
+use Noop\FlushLog\Doctrine\Entity\BaseLogEntry;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity()
+ */
+class LogEntry extends BaseLogEntry
+{
+
+}
+```
 
 # Internal structure of JSON field
 
@@ -71,19 +102,19 @@ Example JSON:
 }
 ```
 
-* **"e"** contains class -> id map of all affected entities (either directly or indirectly, by configuration or by collection change)
-* **"i"** contains class -> id maps of all inserted entities
-* **"cs"** contains class -> id -> field map of all changesets. You can set tracked fields per-entity in the configuration. By default, if entity is tracked, all fields are tracked
+* `"e"` contains class -> id map of all affected entities (either directly or indirectly, by configuration or by collection change)
+* `"i"` contains class -> id maps of all inserted entities
+* `"cs"` contains class -> id -> field map of all changesets. You can set tracked fields per-entity in the configuration. By default, if entity is tracked, all fields are tracked
 
 # Configuration
 
-Example configuration: 
+Example configuration (set in `FlushLogSubscriber::setConfiguration`): 
 
 ```php
 [
     // lists tracked entities. All other entities are ignored
     'entities' => [
-        'App\Entity\EntityName': [
+        'App\Entity\EntityName' => [
         ]
     ]
 ]
