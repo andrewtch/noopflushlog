@@ -13,7 +13,16 @@ use Noop\FlushLog\Doctrine\Entity\BaseLogEntry;
 
 class FlushLogSubscriber implements EventSubscriber
 {
-    protected $log = [];
+    protected const EMPTY_LOG = [
+        '_hashmap' => [],
+        '_i' => [],
+        '_cs' => [],
+        'e' => [],
+        'i' => [],
+        'u' => [],
+    ];
+
+    protected $log = self::EMPTY_LOG;
 
     protected $configuration;
 
@@ -35,19 +44,38 @@ class FlushLogSubscriber implements EventSubscriber
         $em = $args->getEntityManager();
         $uow = $em->getUnitOfWork();
 
+        // process insertions
         foreach ($uow->getScheduledEntityInsertions() as $hash => $entity) {
             if (!$this->isSupportedEntity($entity)) {
                 continue;
             }
 
+            $class = get_class($entity);
+
             // queue for resolution
-            $this->log['_i'][get_class($entity)][] = $hash;
+            $this->log['_i'][$class][] = $hash;
 
             // queue cs
-            $this->log['_cs'][get_class($entity)][$hash] = $uow->getEntityChangeSet($entity);
+            $this->log['_cs'][$class][$hash] = $uow->getEntityChangeSet($entity);
 
             // hash
             $this->log['_hashmap'][$hash] = $entity;
+        }
+
+        // process updates
+        foreach ($uow->getScheduledEntityUpdates() as $hash => $entity) {
+            if (!$this->isSupportedEntity($entity)) {
+                continue;
+            }
+
+            $class = get_class($entity);
+            $id = $this->getMergedIdentifier($uow, $entity);
+
+            // add cs
+            $this->log['cs'][$class][$id] = $uow->getEntityChangeSet($entity);
+
+            // add to affected
+            $this->log['e'][$class][] = $id;
         }
     }
 
@@ -94,7 +122,7 @@ class FlushLogSubscriber implements EventSubscriber
             $tableConfig['log_data_name'] => json_encode($this->log),
         ]);
 
-        $this->log = [];
+        $this->log = self::EMPTY_LOG;
     }
 
     protected function isSupportedEntity(object $entity)

@@ -6,5 +6,8 @@ use Noop\FlushLog\Tests\BaseTest;
 
 class SqliteDriverTest extends BaseTest
 {
-    public function testDriver() {}
+    public function testDriver()
+    {
+        $this->markTestIncomplete();
+    }
 }

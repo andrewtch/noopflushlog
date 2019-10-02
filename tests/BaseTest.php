@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use Noop\FlushLog\Doctrine\ORM\FlushLogSubscriber;
+use Noop\FlushLog\Tests\Entity\LogEntry;
 use Noop\FlushLog\Tests\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
@@ -25,6 +26,44 @@ abstract class BaseTest extends TestCase
             Product::class => []
         ]
     ];
+
+    /**
+     * @return LogEntry
+     */
+    protected function getLastLogEntry()
+    {
+        return $this->entityManager->createQueryBuilder()
+            ->select('l')
+            ->from(LogEntry::class, 'l')
+            ->orderBy('l.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleResult();
+    }
+
+    protected function assertEntityCount($expectedCount, $class)
+    {
+        $this->assertEquals(
+            $expectedCount,
+            $this->entityManager->createQueryBuilder()
+                ->select('COUNT(o)')
+                ->from($class, 'o')
+                ->getQuery()
+                ->getSingleScalarResult()
+        );
+    }
+
+    protected function assertLogCount($expectedCount)
+    {
+        $this->assertEquals(
+            $expectedCount,
+            $this->entityManager->createQueryBuilder()
+                ->select('COUNT(l)')
+                ->from(LogEntry::class, 'l')
+                ->getQuery()
+                ->getSingleScalarResult()
+        );
+    }
 
     protected function tearDown(): void
     {

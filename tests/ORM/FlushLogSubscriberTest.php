@@ -12,25 +12,87 @@ use Noop\FlushLog\Tests\Entity\SkippedProduct;
 
 class FlushLogSubscriberTest extends BaseTest
 {
-    public function testPersistsUserCorrectly() {}
+    public function testMultiColumnKeys()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testTimestamps() {}
+    public function testPersistsUserCorrectly()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testCanDeserializeCorrectly() {}
+    public function testTimestamps()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testQueryWithDefaultDriver() {}
+    public function testCanDeserializeCorrectly()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testRelationAdditionAndDeletion() {}
+    public function testQueryWithDefaultDriver()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testAffectedOnInsertsUpdatesAndDeletes() {}
+    public function testRelationAdditionAndDeletion()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testRemovals() {}
+    public function testAffectedOnInsertsUpdatesAndDeletes()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testChangeSets() {}
+    public function testRemovals()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testSkippedFields() {}
+    public function testChangeSets()
+    {
+        $this->markTestIncomplete();
+    }
 
-    public function testUpdates() {}
+    public function testSkippedFields()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testEmptyFlushIfAllEntitiesAreFiltered()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testEmptyFlush()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testUpdates()
+    {
+        $product1 = (new Product())
+            ->setName('name1');
+
+        $this->entityManager->persist($product1);
+        $this->entityManager->flush();
+
+        $this->assertLogCount(1);
+
+        $product1->setName('other name');
+
+        $this->entityManager->flush();
+
+        $this->assertLogCount(2);
+
+        $entry = $this->getLastLogEntry();
+
+        $this->assertEquals([$product1->getId()], $entry->getLogData()['e'][Product::class]);
+        $this->assertEquals(['name1', 'other name'], $entry->getLogData()['cs'][Product::class][$product1->getId()]['name']);
+    }
 
     public function testSkippedEntities()
     {
@@ -45,14 +107,12 @@ class FlushLogSubscriberTest extends BaseTest
 
         $this->entityManager->flush();
 
-        $this->assertCount(1, $this->entityManager->getRepository(Product::class)->findAll());
-        $this->assertCount(1, $this->entityManager->getRepository(SkippedProduct::class)->findAll());
+        $this->assertEntityCount(1, Product::class);
+        $this->assertEntityCount(1, SkippedProduct::class);
 
-        $entries = $this->entityManager->getRepository(LogEntry::class)->findAll();
+        $this->assertLogCount(1);
 
-        $this->assertCount(1, $entries);
-
-        $entry = $entries[0];
+        $entry = $this->getLastLogEntry();
 
         $this->assertEquals([Product::class], array_keys($entry->getLogData()['i']));
     }
@@ -70,11 +130,9 @@ class FlushLogSubscriberTest extends BaseTest
 
         $this->entityManager->flush();
 
-        $entries = $this->entityManager->getRepository(LogEntry::class)->findAll();
+        $this->assertLogCount(1);
 
-        $this->assertCount(1, $entries);
-
-        $entry = $entries[0];
+        $entry = $this->getLastLogEntry();
 
         $this->assertEquals([1, 2], $entry->getLogData()['i'][Product::class]);
 
@@ -96,6 +154,6 @@ class FlushLogSubscriberTest extends BaseTest
         $this->entityManager->persist($product);
         $this->entityManager->flush();
 
-        $this->assertCount(1, $this->entityManager->getRepository(LogEntry::class)->findAll());
+        $this->assertLogCount(1);
     }
 }
