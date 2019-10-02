@@ -64,7 +64,14 @@ class FlushLogSubscriberTest extends BaseTest
 
     public function testEmptyFlushIfAllEntitiesAreFiltered()
     {
-        $this->markTestIncomplete();
+        $product1 = (new SkippedProduct())
+            ->setName('skipped');
+
+        $this->entityManager->persist($product1);
+        $this->entityManager->flush();
+
+        $this->assertEntityCount(1, SkippedProduct::class);
+        $this->assertLogCount(0);
     }
 
     public function testEmptyFlush()
