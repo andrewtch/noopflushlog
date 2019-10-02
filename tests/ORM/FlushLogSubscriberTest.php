@@ -74,7 +74,18 @@ class FlushLogSubscriberTest extends BaseTest
 
         $entry = $this->getLastLogEntry();
         $this->assertEquals(['visibleName' => [null, 'visible']], $entry->getLogData()['cs'][PartialProduct::class][$product1->getId()]);
+
         // udpates
+        $product1->setShadowName('new shadow');
+        $this->entityManager->flush();
+
+        $this->entityManager->refresh($product1);
+        $this->assertLogCount(1);
+        $this->assertEquals('new shadow', $product1->getShadowName());
+
+        $product1->setVisibleName('new visible');
+        $this->entityManager->flush();
+        $this->assertLogCount(2);
     }
 
     public function testEmptyFlushIfAllEntitiesAreFiltered()

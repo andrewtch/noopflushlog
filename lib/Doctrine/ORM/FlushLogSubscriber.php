@@ -52,11 +52,17 @@ class FlushLogSubscriber implements EventSubscriber
 
             $class = get_class($entity);
 
+            // queue cs
+            $changeset = $this->getEntityChangeSet($uow, $entity);
+
+            if (!$changeset) {
+                continue;
+            }
+
+            $this->log['_cs'][$class][$hash] = $changeset;
+
             // queue for resolution
             $this->log['_i'][$class][] = $hash;
-
-            // queue cs
-            $this->log['_cs'][$class][$hash] = $this->getEntityChangeSet($uow, $entity);
 
             // hash
             $this->log['_hashmap'][$hash] = $entity;
@@ -72,7 +78,13 @@ class FlushLogSubscriber implements EventSubscriber
             $id = $this->getMergedIdentifier($uow, $entity);
 
             // add cs
-            $this->log['cs'][$class][$id] = $this->getEntityChangeset($uow, $entity);
+            $changeset = $this->getEntityChangeset($uow, $entity);
+
+            if (!$changeset) {
+                continue;
+            }
+
+            $this->log['cs'][$class][$id] = $changeset;
 
             // add to affected
             $this->log['e'][$class][] = $id;
