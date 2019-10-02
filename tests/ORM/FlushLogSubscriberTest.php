@@ -60,7 +60,30 @@ class FlushLogSubscriberTest extends BaseTest
 
     public function testAllSkippedFieldsSkipEntity()
     {
-        $this->markTestIncomplete();
+        $product = (new Product())
+            ->setName('name');
+
+        $partial = (new PartialProduct())
+            ->setVisibleName('visible')
+            ->setShadowName('shadow');
+
+        $this->entityManager->persist($product);
+        $this->entityManager->persist($partial);
+
+        $this->entityManager->flush();;
+
+        $this->assertLogCount(1);
+
+        $product->setName('new name');
+        $partial->setShadowName('new shadow');
+
+        $this->entityManager->flush();
+
+        $this->assertLogCount(2);
+
+        $entry = $this->getLastLogEntry();
+
+        $this->assertEquals([Product::class], array_keys($entry->getLogData()['e']));
     }
 
     public function testSkippedFields()
