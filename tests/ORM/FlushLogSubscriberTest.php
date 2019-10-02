@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\SchemaConfig;
 use Doctrine\DBAL\Types\Type;
 use Noop\FlushLog\Tests\BaseTest;
 use Noop\FlushLog\Tests\Entity\LogEntry;
+use Noop\FlushLog\Tests\Entity\PartialProduct;
 use Noop\FlushLog\Tests\Entity\Product;
 use Noop\FlushLog\Tests\Entity\SkippedProduct;
 
@@ -57,9 +58,23 @@ class FlushLogSubscriberTest extends BaseTest
         $this->markTestIncomplete();
     }
 
-    public function testSkippedFields()
+    public function testAllSkippedFieldsSkipEntity()
     {
         $this->markTestIncomplete();
+    }
+
+    public function testSkippedFields()
+    {
+        $product1 = (new PartialProduct())
+            ->setVisibleName('visible')
+            ->setShadowName('shadow');
+
+        $this->entityManager->persist($product1);
+        $this->entityManager->flush();
+
+        $entry = $this->getLastLogEntry();
+        $this->assertEquals(['visibleName' => [null, 'visible']], $entry->getLogData()['cs'][PartialProduct::class][$product1->getId()]);
+        // udpates
     }
 
     public function testEmptyFlushIfAllEntitiesAreFiltered()

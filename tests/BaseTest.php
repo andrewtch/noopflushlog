@@ -10,6 +10,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use Noop\FlushLog\Doctrine\ORM\FlushLogSubscriber;
 use Noop\FlushLog\Tests\Entity\LogEntry;
+use Noop\FlushLog\Tests\Entity\PartialProduct;
 use Noop\FlushLog\Tests\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
@@ -23,7 +24,10 @@ abstract class BaseTest extends TestCase
 
     protected $configuration = [
         'entities' => [
-            Product::class => []
+            Product::class => [],
+            PartialProduct::class => [
+                'fields' => ['visibleName'],
+            ]
         ]
     ];
 

@@ -56,7 +56,7 @@ class FlushLogSubscriber implements EventSubscriber
             $this->log['_i'][$class][] = $hash;
 
             // queue cs
-            $this->log['_cs'][$class][$hash] = $uow->getEntityChangeSet($entity);
+            $this->log['_cs'][$class][$hash] = $this->getEntityChangeSet($uow, $entity);
 
             // hash
             $this->log['_hashmap'][$hash] = $entity;
@@ -72,7 +72,7 @@ class FlushLogSubscriber implements EventSubscriber
             $id = $this->getMergedIdentifier($uow, $entity);
 
             // add cs
-            $this->log['cs'][$class][$id] = $uow->getEntityChangeSet($entity);
+            $this->log['cs'][$class][$id] = $this->getEntityChangeset($uow, $entity);
 
             // add to affected
             $this->log['e'][$class][] = $id;
@@ -125,6 +125,29 @@ class FlushLogSubscriber implements EventSubscriber
         }
 
         $this->log = self::EMPTY_LOG;
+    }
+
+    protected function getEntityChangeset(UnitOfWork $unitOfWork, object $entity)
+    {
+        if (!$this->isSupportedEntity($entity)) {
+            return null;
+        }
+
+        $changeset = $unitOfWork->getEntityChangeSet($entity);
+
+        $fields = $this->configuration['entities'][get_class($entity)]['fields'] ?? [];
+
+        if (!$fields) {
+            return $changeset;
+        }
+
+        $changeset = array_intersect_key($changeset, array_flip($fields));
+
+        if (!$changeset) {
+            return null;
+        }
+
+        return $changeset;
     }
 
     protected function isSupportedEntity(object $entity)
