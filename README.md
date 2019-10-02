@@ -115,7 +115,11 @@ Example configuration (set in `FlushLogSubscriber::setConfiguration`):
     // lists tracked entities. All other entities are ignored
     'entities' => [
         'App\Entity\EntityName' => [
-        ]
+        ],
+        'App\Entity\OtherEntityName' => [
+            // if "fields" is set, only these fields will be tracked, otherwise, all fields are tracked
+            'fields' => ['id', 'name']
+        ],
     ]
 ]
 ```

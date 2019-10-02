@@ -50,12 +50,24 @@ class FlushLogSubscriberTest extends BaseTest
 
     public function testRemovals()
     {
-        $this->markTestIncomplete();
-    }
+        $product = (new Product())
+            ->setName('name');
 
-    public function testChangeSets()
-    {
-        $this->markTestIncomplete();
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+
+        $id = $product->getId();
+
+        $this->entityManager->remove($product);
+        $this->entityManager->flush();
+
+        $this->assertLogCount(2);
+
+        $entry = $this->getLastLogEntry();
+
+        $this->assertEquals([Product::class], array_keys($entry->getLogData()['e']));
+        $this->assertEquals([$id], $entry->getLogData()['e'][Product::class]);
+        $this->assertEquals([$id], $entry->getLogData()['r'][Product::class]);
     }
 
     public function testAllSkippedFieldsSkipEntity()
@@ -156,6 +168,7 @@ class FlushLogSubscriberTest extends BaseTest
         $entry = $this->getLastLogEntry();
 
         $this->assertEquals([$product1->getId()], $entry->getLogData()['e'][Product::class]);
+        $this->assertEquals([$product1->getId()], $entry->getLogData()['u'][Product::class]);
         $this->assertEquals(['name1', 'other name'], $entry->getLogData()['cs'][Product::class][$product1->getId()]['name']);
     }
 

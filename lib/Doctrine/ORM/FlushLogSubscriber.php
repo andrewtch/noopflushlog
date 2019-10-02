@@ -20,6 +20,7 @@ class FlushLogSubscriber implements EventSubscriber
         'e' => [],
         'i' => [],
         'u' => [],
+        'r' => [],
     ];
 
     protected $log = self::EMPTY_LOG;
@@ -85,6 +86,25 @@ class FlushLogSubscriber implements EventSubscriber
             }
 
             $this->log['cs'][$class][$id] = $changeset;
+
+            // add to updated
+            $this->log['u'][$class][] = $id;
+            
+            // add to affected
+            $this->log['e'][$class][] = $id;
+        }
+
+         // process removals
+        foreach ($uow->getScheduledEntityDeletions() as $hash => $entity) {
+            if (!$this->isSupportedEntity($entity)) {
+                continue;
+            }
+
+            $class = get_class($entity);
+            $id = $this->getMergedIdentifier($uow, $entity);
+
+            // add to removed
+            $this->log['r'][$class][] = $id;
 
             // add to affected
             $this->log['e'][$class][] = $id;
