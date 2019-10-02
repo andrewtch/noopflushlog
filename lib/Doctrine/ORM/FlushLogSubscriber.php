@@ -116,11 +116,13 @@ class FlushLogSubscriber implements EventSubscriber
         // post-processing end
 
         // persist
-        $tableConfig = $this->resolveTableConfig($em);
+        if (count($this->log['e'])) {
+            $tableConfig = $this->resolveTableConfig($em);
 
-        $em->getConnection()->insert($tableConfig['name'], [
-            $tableConfig['log_data_name'] => json_encode($this->log),
-        ]);
+            $em->getConnection()->insert($tableConfig['name'], [
+                $tableConfig['log_data_name'] => json_encode($this->log),
+            ]);
+        }
 
         $this->log = self::EMPTY_LOG;
     }

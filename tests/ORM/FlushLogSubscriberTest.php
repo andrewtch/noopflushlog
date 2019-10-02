@@ -69,7 +69,16 @@ class FlushLogSubscriberTest extends BaseTest
 
     public function testEmptyFlush()
     {
-        $this->markTestIncomplete();
+        $product1 = (new Product())
+            ->setName('name1');
+
+        $this->entityManager->persist($product1);
+        $this->entityManager->flush();
+
+        $this->assertLogCount(1);
+
+        $this->entityManager->flush();
+        $this->assertLogCount(1);
     }
 
     public function testUpdates()
