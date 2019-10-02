@@ -43,8 +43,20 @@ class FlushLogSubscriberTest extends BaseTest
         $this->markTestIncomplete();
     }
 
-    public function testAffectedOnInsertsUpdatesAndDeletes()
+    public function testAffectedManyToManyOnInsertsUpdatesAndDeletes()
     {
+        // ahem?
+        $this->markTestIncomplete();
+    }
+
+    public function testAffectedOneToManyOnInsertsUpdatesAndDeletes()
+    {
+        // deletes should be really tricky as after flush we don't have an Id anymore
+        // general testing scenario:
+        // create product, persist
+        // create a translation, set product, should affect product
+        // update translation, should affect product
+        // remove translation, should affect product
         $this->markTestIncomplete();
     }
 

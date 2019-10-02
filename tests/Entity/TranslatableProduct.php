@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity()
  */
-class Product
+class TranslatableProduct
 {
     /**
      * @ORM\Id()
@@ -20,6 +20,11 @@ class Product
      * @ORM\Column(type="string")
      */
     private $name;
+
+    /**
+     * @ORM\OneToMany(targetEntity="Noop\FlushLog\Tests\Entity\ProductTranslation", mappedBy="product")
+     */
+    private $translations;
 
     /**
      * @return mixed

@@ -5,7 +5,6 @@ namespace Noop\FlushLog\Tests\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @var
  * @ORM\Entity()
  */
 class PartialProduct
