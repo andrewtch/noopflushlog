@@ -165,7 +165,10 @@ class FlushLogSubscriber implements EventSubscriber
         if (count($this->log['e'])) {
             $tableConfig = $this->resolveTableConfig($em);
 
-            $insert = [$tableConfig['log_data_name'] => json_encode($this->log)];
+            $insert = [
+                $tableConfig['log_data_name'] => json_encode($this->log),
+                $tableConfig['created_at_name'] => (new \DateTime())->format('Y-m-d H:i:s'),
+            ];
 
             if ($this->userResolver) {
                 $insert[$tableConfig['user_id_name']] = $this->userResolver->resolveUserId();
@@ -236,6 +239,7 @@ class FlushLogSubscriber implements EventSubscriber
                 $tableConfig['log_data_name'] = $metadata->getColumnName('logData');
                 $tableConfig['user_id_name'] = $metadata->getColumnName('userId');
                 $tableConfig['username_name'] = $metadata->getColumnName('username');
+                $tableConfig['created_at_name'] = $metadata->getColumnName('createdAt');
 
                 break;
             }

@@ -27,6 +27,11 @@ class BaseLogEntry
     protected $username;
 
     /**
+     * @ORM\Column(type="datetime")
+     */
+    protected $createdAt;
+
+    /**
      * @ORM\Column(type="json")
      */
     protected $logData;
@@ -69,6 +74,18 @@ class BaseLogEntry
     {
         $this->username = $username;
 
+        return $this;
+    }
+
+    public function getCreatedAt()
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt($createdAt)
+    {
+        $this->createdAt = $createdAt;
+        
         return $this;
     }
 }
