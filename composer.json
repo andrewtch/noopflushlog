@@ -2,8 +2,7 @@
     "name": "noop/flushlog",
     "require": {
         "php": "^7.1.3",
-        "doctrine/orm": "^2.6",
-        "symfony/property-access": "^4.3"
+        "doctrine/orm": "^2.6"
     },
     "autoload": {
         "psr-4": {
