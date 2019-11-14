@@ -10,15 +10,11 @@ use Noop\FlushLog\Tests\Entity\LogEntry;
 use Noop\FlushLog\Tests\Entity\PartialProduct;
 use Noop\FlushLog\Tests\Entity\Product;
 use Noop\FlushLog\Tests\Entity\SkippedProduct;
+use Noop\FlushLog\User\TestUserResolver;
 
 class FlushLogSubscriberTest extends BaseTest
 {
     public function testMultiColumnKeys()
-    {
-        $this->markTestIncomplete();
-    }
-
-    public function testPersistsUserCorrectly()
     {
         $this->markTestIncomplete();
     }
@@ -58,6 +54,33 @@ class FlushLogSubscriberTest extends BaseTest
         // update translation, should affect product
         // remove translation, should affect product
         $this->markTestIncomplete();
+    }
+
+    public function testPersistsUserCorrectly()
+    {
+        $product = (new Product())
+            ->setName('name');
+
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+
+        $entry = $this->getLastLogEntry();
+
+        $this->assertNull($entry->getUserId());
+        $this->assertNull($entry->getUserName());
+
+        $this->subscriber->setUserResolver(new TestUserResolver());
+
+        $product = (new Product())
+            ->setName('name');
+
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+
+        $entry = $this->getLastLogEntry();
+
+        $this->assertEquals(1, $entry->getUserId());
+        $this->assertEquals('test user', $entry->getUserName());
     }
 
     public function testRemovals()

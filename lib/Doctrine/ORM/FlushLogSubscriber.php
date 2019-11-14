@@ -10,6 +10,7 @@ use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\UnitOfWork;
 use Noop\FlushLog\Doctrine\Entity\BaseLogEntry;
+use Noop\FlushLog\User\UserResolverInterface;
 
 class FlushLogSubscriber implements EventSubscriber
 {
@@ -26,6 +27,19 @@ class FlushLogSubscriber implements EventSubscriber
     protected $log = self::EMPTY_LOG;
 
     protected $configuration;
+
+    /**
+     * @var UserResolverInterface
+     */
+    protected $userResolver;
+
+    /**
+     * @param UserResolverInterface $userResolver
+     */
+    public function setUserResolver(UserResolverInterface $userResolver)
+    {
+        $this->userResolver = $userResolver;
+    }
 
     public function setConfiguration($configuration)
     {
@@ -151,9 +165,14 @@ class FlushLogSubscriber implements EventSubscriber
         if (count($this->log['e'])) {
             $tableConfig = $this->resolveTableConfig($em);
 
-            $em->getConnection()->insert($tableConfig['name'], [
-                $tableConfig['log_data_name'] => json_encode($this->log),
-            ]);
+            $insert = [$tableConfig['log_data_name'] => json_encode($this->log)];
+
+            if ($this->userResolver) {
+                $insert[$tableConfig['user_id_name']] = $this->userResolver->resolveUserId();
+                $insert[$tableConfig['username_name']] = $this->userResolver->resolveUsername();
+            }
+
+            $em->getConnection()->insert($tableConfig['name'], $insert);
         }
 
         $this->log = self::EMPTY_LOG;
@@ -215,6 +234,8 @@ class FlushLogSubscriber implements EventSubscriber
             ) {
                 $tableConfig['name'] = $metadata->getTableName();
                 $tableConfig['log_data_name'] = $metadata->getColumnName('logData');
+                $tableConfig['user_id_name'] = $metadata->getColumnName('userId');
+                $tableConfig['username_name'] = $metadata->getColumnName('username');
 
                 break;
             }

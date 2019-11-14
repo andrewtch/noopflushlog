@@ -20,6 +20,12 @@ abstract class BaseTest extends TestCase
      * @var EntityManagerInterface
      */
     protected $entityManager;
+
+    /**
+     * @var FlushLogSubscriber
+     */
+    protected $subscriber;
+
     protected $connectionName = 'mysql';
 
     protected $configuration = [
@@ -108,11 +114,11 @@ abstract class BaseTest extends TestCase
         $this->entityManager = EntityManager::create($connection, $configuration);
 
         // configure and add subscriber
-        $subscriber = new FlushLogSubscriber();
+        $this->subscriber = new FlushLogSubscriber();
 
-        $subscriber->setConfiguration($this->configuration);
+        $this->subscriber->setConfiguration($this->configuration);
 
-        $eventManager->addEventSubscriber($subscriber);
+        $eventManager->addEventSubscriber($this->subscriber);
 
         // create schema
         $schemaTool = new SchemaTool($this->entityManager);
